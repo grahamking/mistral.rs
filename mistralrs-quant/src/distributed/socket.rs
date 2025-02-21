@@ -44,7 +44,7 @@ impl Server {
 
     /// Broadcasts the given ID over all persistent connections.
     pub fn broadcast_id(&self, id: &Id) -> Result<()> {
-        let body = id.internal();
+        let body: &[::core::ffi::c_char; 128usize] = id.internal();
         // SAFETY: We know the provenance and lifetime of `body` are valid.
         let body_bytes = unsafe { slice::from_raw_parts(body.as_ptr() as *const u8, body.len()) };
         for mut stream in &self.connections {
@@ -120,9 +120,9 @@ impl Client {
         let mut buffer = [0u8; 128];
         stream.read_exact(&mut buffer)?;
 
-        let mut id_bytes = [0i8; 128];
+        let mut id_bytes: [::core::ffi::c_char; 128] = [0; 128];
         for (i, &b) in buffer.iter().enumerate() {
-            id_bytes[i] = b as i8;
+            id_bytes[i] = b as ::core::ffi::c_char;
         }
         Ok(Id::uninit(id_bytes))
     }
